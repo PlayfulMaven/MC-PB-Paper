@@ -1,0 +1,386 @@
+---
+title: "Proficiency Barrier"
+author: "Cade Abrams and Bryan Terlizzi"
+output:
+  html_document
+---
+
+
+```{r}
+library(tidyverse)
+library(MBESS)
+library(pwr)
+library(dplyr)
+library(gmodels)
+library(semPower)
+library(sjPlot)
+library(sjlabelled)
+library(qwraps2)
+library(tinytex)
+library(flextable)
+library(officer)
+library(apaTables)
+library(here)
+```
+
+
+```{r}
+PB <- read.csv(here("Data Files", "A Plus Data.csv"), header = TRUE, sep = ",")
+
+PB <- PB %>%
+           mutate(Sex = factor(sex,
+                                labels = c("Male", "Female")),
+                  MC_Level = factor(MCA_Class,
+                                       labels = c("Low", "Moderate", "High" )),
+                  Grip_Level = factor(Grip_Class,
+                                labels = c("Low", "Moderate", "High")),
+                  PACER_Level = factor(PACER_HFZ,
+                                labels = c("Health Risk", "Needs Improvement", "Healthy")))
+
+PB
+```
+*Descriptive Statistics*
+```{r}
+
+descriptives <- subset(PB, select = c(MC_Level, Sex, Age_Test_yrs, BMI, PACER_VO2max, Grip_Max_Mean_kg))
+
+descriptives
+
+participants <-
+  list("Age" = 
+         list("min"       = ~ min(Age_Test_yrs),
+              "mean (sd)" = ~ qwraps2 :: mean_sd(Age_Test_yrs),
+              "max"       = ~ max (Age_Test_yrs)))
+
+age <- summary_table(descriptives, participants)
+
+age
+
+PB %>%
+  group_by(Sex, MC_Level, Grip_Level) %>%
+  summarise(Sex_Count=n(), BMI = mean(BMI),
+          .groups = "drop")
+
+boys <- 128/244
+boys
+
+girls <- 116/244
+girls
+
+```
+
+*APA Table for Descriptive Stats (Packages: qwraps2; flextable; officer)*
+```{r}
+options(qwraps2_markup = "markdown")
+our_summary1 <-
+  list("BMI" =
+       list("min"       = ~ min(BMI),
+            "median"    = ~ median(BMI),
+            "max"       = ~ max(BMI),
+            "mean (sd)" = ~ qwraps2::mean_sd(BMI)),
+       "Vo2 Max" =
+       list("min"       = ~ min(PACER_VO2max),
+            "median"    = ~ median(PACER_VO2max),
+            "max"       = ~ max(PACER_VO2max),
+            "mean (sd)" = ~ qwraps2::mean_sd(PACER_VO2max)),
+       "Grip Max Average in kg" =
+       list("min"       = ~ min(Grip_Max_Mean_kg),
+            "median"    = ~ median(Grip_Max_Mean_kg),
+            "max"       = ~ max(Grip_Max_Mean_kg),
+            "mean (sd)" = ~ qwraps2::mean_sd(Grip_Max_Mean_kg))
+       )
+
+whole <- summary_table(descriptives, our_summary1)
+whole
+
+level.sum <- summary_table(dplyr::group_by(descriptives, MC_Level), our_summary1)
+level.sum
+
+level.sum <- as.data.frame(level.sum)
+
+level.sum <- flextable(level.sum %>% rownames_to_column("Delete This Column Header"))
+
+level.sum <- theme_booktabs(level.sum)
+
+level.sum <- align(level.sum, align = "center", part = "body")
+
+level.sum <- set_caption(level.sum, caption = "Descriptive Statistics of Scores on Level of Motor Competence")
+
+level.sum <- footnote(level.sum, i = 9, j = 1, value = as_paragraph("Grip Max Average was calculated by averaging maximum grip values for the right and left hands."))
+
+level.sum <- autofit(level.sum)
+
+level.sum
+
+word_export <- read_docx()
+word_export <- body_add_flextable(word_export, level.sum)
+print(word_export, 'Finally.docx')
+```
+*Need to write up this table*
+
+**Statistical Analysis**
+
+***
+To assess whether there was evidence of a MC proficiency barrier associated with cardiorespiratory fitness and muscular strength, we conducted two 3-way chi-square tests of independence. In both analyses, we used MC as the independent variable to determine the probability of MC levels predicting CRF levels and muscular strength level classifications. Additionally, because we normalized the data for both age and sex, our analyses included the entire sample. We implemented a p ≤ .05 to determine statistical significance. We measured effect size for the chi-square tests of independence using Cramer’s V. We used R (R Core Team, 2020) with the (blank package and cite) to conduct a post hoc power analysis using the effect sizes (i.e., Cramer’s V) from both 3-way chi-square tests of independence. We determined our power to detect a small effect (V = .21) for CRF to be .78 and our power for detecting a small effect (V = .22) for MSF as .80. 
+
+*Measuring Post Hoc Power (Packages: semPower)*
+```{r}
+N <- nrow(PB)
+
+a <- (length(unique(PB$MC_Level))-1)*(length(unique(PB$Grip_Class))-1)
+  
+pwr.chisq.test(w=.22, N= N, df=a)
+
+```
+
+
+*APA Correlation Table for Grip, V02, and MCA Overall (Packages: apaTables)*
+```{r}
+correlations <- subset(PB, select = c(Sex, MCA_Overall, PACER_VO2max, Allo_Grip_Max_Mean_KG))
+
+apa.cor.table(correlations, table.number = 4, filename = "New Grip Correlation.doc")
+
+```
+**Results**
+***
+Bivariate correlations among CRF, MSF, and MC variables were generally low to moderate (r = .23–.38) (see Table 2 for individual CRF, MSF, and MC correlations). 
+
+***
+
+*Looking at Cross Table for CRF (Packages: sjPlot; gmodels)*
+```{r}
+PB.new <- subset(PB, select=c(Sex, MC_Level, Grip_Level, PACER_Level))
+
+sjt.xtab(PB.new$MC_Level, PB.new$PACER_Level, show.row.prc = TRUE, show.legend = TRUE,  file = "apa_PACER.doc")
+
+CrossTable(PB.new$MC_Level, PB.new$PACER_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE, prop.t = FALSE, asresid = TRUE)
+
+ggplot(PB,aes(x = MC_Level, y = PACER_HFZ))+
+  geom_violin()+
+  geom_jitter(height = 0, width = 0.03)+
+  stat_summary(fun = "mean", color = "red", geom = "point", size = 3)
+```
+
+*Looking at Cross Table for MSF (Packages: sjPlot; gmodels)*
+```{r}
+
+sjt.xtab(PB.new$MC_Level, PB.new$Grip_Level, show.row.prc = TRUE, show.legend = TRUE, file = "apa_GRIP.doc")
+
+CrossTable(PB.new$MC_Level, PB.new$Grip_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE, prop.t = FALSE, asresid = TRUE)
+
+ggplot(PB,aes(x = MC_Level, y = Grip_Class))+
+  geom_violin()+
+  geom_jitter(height = 0, width = 0.03)+
+  stat_summary(fun = "mean", color = "red", geom = "point", size = 3)
+```
+
+Chi-square analyses demonstrated statistically significant models; for both CRF (χ2 (4, n=244) = 22.83, p < 0.001, Cramer’s V = .22) and MSF (χ2 (4, n=244) = 24.28, p < 0.001, Cramer’s V = .22). According to Cohen’s conventions for effect sizes (Cohen, 1998), the results indicated small effect sizes. 
+
+Probability data from the Chi Square analyses are shown in Tables 1 and 2. No participants who exhibited low MC, (n=24, 0%), met the healthy fitness zone standards for PACER performance. Further, 87.5%, (21/24), of low skilled youth’s scores were in the lowest category of CRF (i.e., “Health-Risk”). *Conversely, 50% (15/30) of high MC were high in CRF????* Only 26.7%, (8/30), of high skilled youth displayed scores within the lowest category of CRF. For grip strength, 20.8%, (5/24), of low skilled youth demonstrated ≥80%tile; however, 100% high skilled youth, (30/30), displayed at least moderate grip strength (>20%ile).
+
+*Looking for Sex Differences (Packages: sjPlot; gmodels)* **Did not write about sex differences**
+```{r}
+sex.diff <- ftable(PB.new$Sex, PB.new$MC_Level, PB.new$PACER_Level)
+
+prop.table(sex.diff, margin = 1)
+
+Male <- subset(PB.new, Sex == "Male")
+
+Female <- subset(PB.new, Sex == "Female")
+
+CrossTable(Female$MC_Level, Female$PACER_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE, prop.t = FALSE, asresid = TRUE, prop.chisq = FALSE)
+
+CrossTable(Male$MC_Level, Male$PACER_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE, prop.t = FALSE, asresid = TRUE, prop.chisq = FALSE)
+
+CrossTable(Female$MC_Level, Female$Grip_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE, prop.t = FALSE, asresid = TRUE, prop.chisq = FALSE)
+
+CrossTable(Male$MC_Level, Male$Grip_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE, prop.t = FALSE, asresid = TRUE, prop.chisq = FALSE)
+```
+
+*Looking at 95% Confidence Interval for Dfference Between Low and High MC for "Health-Risk" CRF*
+```{r}
+CRF.diff <- ftable(PB.new$MC_Level, PB.new$PACER_Level)
+
+CRF.prop <- prop.table(CRF.diff, margin = 1)
+
+#Let's look at all the totals for this table.
+
+sum(140+41+63)
+
+# If there is no difference in conditions, here is our best
+# estimate of the proportion of people who are considered a health risk in the population for CRF.
+
+140/244
+
+low_MC_CRF.ha = (140/244)*24
+low_MC_CRF.ha
+
+high_MC_CRF.ha = (140/244)*30
+high_MC_CRF.ha
+
+contrast.1 <- CRF.prop[1,1]-CRF.prop[3,1]
+contrast.1
+
+# We need the standard error.
+
+se.1 <- sqrt(CRF.prop[1,1]*(1-CRF.prop[1,1])/244 +
+               CRF.prop[3,1]*(1-CRF.prop[3,1])/244)
+se.1
+
+# Let's get Scheffe's critical value. Note that we can use this
+# same value for any contrasts we decide to look at.
+
+cv = sqrt(qchisq(.95, 4))
+cv
+
+# So here's our MOE for this contrast.
+
+moe.1 <- se.1*cv
+moe.1
+
+# Here's our confidence interval boundaries.
+
+contrast.1 - moe.1
+contrast.1 + moe.1
+
+```
+
+*Looking at 95% Confidence Interval for Dfference Between Low and High MC for "Healthy" CRF*
+```{r}
+
+#Let's look at all the totals for this table.
+
+sum(140+41+63)
+
+# If there is no difference in conditions, here is our best
+# estimate of the proportion of people who are considered a health risk in the population for CRF.
+
+63/244
+
+low_MC_CRF.ha = (63/244)*24
+low_MC_CRF.ha
+
+high_MC_CRF.ha = (63/244)*30
+high_MC_CRF.ha
+
+contrast.2 <- CRF.prop[3,3]-CRF.prop[1,3]
+contrast.2
+
+# We need the standard error.
+
+se.2 <- sqrt(CRF.prop[1,3]*(1-CRF.prop[1,3])/244 +
+               CRF.prop[3,3]*(1-CRF.prop[3,3])/244)
+se.2
+
+# Let's get Scheffe's critical value. Note that we can use this
+# same value for any contrasts we decide to look at.
+
+cv = sqrt(qchisq(.95, 4))
+cv
+
+# So here's our MOE for this contrast.
+
+moe.2 <- se.2*cv
+moe.2
+
+# Here's our confidence interval boundaries.
+
+contrast.2 - moe.2
+contrast.2 + moe.2
+```
+
+*Looking at 95% Confidence Interval for Dfference Between Low and High MC for "Low" MSF*
+```{r}
+MSF.diff <- ftable(PB.new$MC_Level, PB.new$Grip_Level)
+
+MSF.prop <-prop.table(MSF.diff, margin = 1)
+
+#Let's look at all the totals for this table.
+
+sum(38+124+82)
+
+# If there is no difference in conditions, here is our best
+# estimate of the proportion of people who are considered a health risk in the population for CRF.
+
+38/244
+
+low_MC_MSF.ha = (38/244)*24
+low_MC_MSF.ha
+
+high_MC_MSF.ha = (38/244)*30
+high_MC_MSF.ha
+
+contrast.3 <- MSF.prop[1,1]-MSF.prop[3,1]
+contrast.3
+
+# We need the standard error.
+
+se.3 <- sqrt(MSF.prop[1,1]*(1-MSF.prop[1,1])/244 +
+               MSF.prop[3,1]*(1-MSF.prop[3,1])/244)
+se.3
+
+# Let's get Scheffe's critical value. Note that we can use this
+# same value for any contrasts we decide to look at.
+
+cv = sqrt(qchisq(.95, 4))
+cv
+
+# So here's our MOE for this contrast.
+
+moe.3 <- se.3*cv
+moe.3
+
+# Here's our confidence interval boundaries.
+
+contrast.3 - moe.3
+contrast.3 + moe.3
+
+```
+
+*Looking at 95% Confidence Interval for Dfference Between Low and High MC for "High" MSF*
+```{r}
+
+#Let's look at all the totals for this table.
+
+sum(38+124+82)
+
+# If there is no difference in conditions, here is our best
+# estimate of the proportion of people who are considered a health risk in the population for CRF.
+
+82/244
+
+low_MC_MSF.ha = (82/244)*24
+low_MC_MSF.ha
+
+high_MC_MSF.ha = (82/244)*30
+high_MC_MSF.ha
+
+contrast.4 <- MSF.prop[3,3]-MSF.prop[1,3]
+contrast.4
+
+# We need the standard error.
+
+se.4 <- sqrt(MSF.prop[1,3]*(1-MSF.prop[1,3])/244 +
+               MSF.prop[3,3]*(1-MSF.prop[3,3])/244)
+se.4
+
+# Let's get Scheffe's critical value. Note that we can use this
+# same value for any contrasts we decide to look at.
+
+cv = sqrt(qchisq(.95, 4))
+cv
+
+# So here's our MOE for this contrast.
+
+moe.4 <- se.4*cv
+moe.4
+
+# Here's our confidence interval boundaries.
+
+contrast.4 - moe.4
+contrast.4 + moe.4
+
+```
+
+*** 
+We used the Scheffé-like method to determine specific differences between MC levels and HRF outcomes. In this sample, the difference in percentage points for low CRF (i.e., “Health-Risk”) between low MC and high MC groups was 59 percentile points (95% CI [48, 70]). Thus, the low MC group exhibited 59 percentile points more scores that failed to exceed the standards for the lowest category of CRF when compared to the high MC group. Additionally, the difference in percentage points for low MSF (i.e., ≤ 20%tile) between low MC and high MC groups was 48 percentage points (95% CI [38, 58]). In essence, the low MC group presented 48 percentage points more participants who failed to attain at least a moderate level of grip strength when compared to the high MC group.
