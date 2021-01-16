@@ -1,2 +1,2 @@
 # MC-PB-Paper
- Investigating Seefedlt's motor skill proficiency barrier in youth ages 10-18.
+ Investigating Seefedlt's motor skill proficiency barrier on aspects of health-related fitness in youth ages 10-18.
