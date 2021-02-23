@@ -151,9 +151,9 @@ Bivariate correlations among CRF, MSF, and MC variables were generally low to mo
 ```{r}
 PB.new <- subset(PB, select=c(Sex, MC_Level, Grip_Level, PACER_Level))
 
-sjt.xtab(PB.new$MC_Level, PB.new$PACER_Level, show.row.prc = TRUE, show.legend = TRUE,  file = "apa_PACER.doc")
+sjt.xtab(PB.new$MC_Level, PB.new$PACER_Level, show.col.prc = TRUE, show.legend = TRUE,  file = "apa_PACER.doc")
 
-CrossTable(PB.new$MC_Level, PB.new$PACER_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE, prop.t = FALSE, asresid = TRUE)
+CrossTable(PB.new$MC_Level, PB.new$PACER_Level, format=c("SPSS"), prop.r = FALSE, prop.c = TRUE, prop.t = FALSE, asresid = TRUE)
 
 ggplot(PB,aes(x = MC_Level, y = PACER_HFZ))+
   geom_violin()+
@@ -164,9 +164,9 @@ ggplot(PB,aes(x = MC_Level, y = PACER_HFZ))+
 *Looking at Cross Table for MSF (Packages: sjPlot; gmodels)*
 ```{r}
 
-sjt.xtab(PB.new$MC_Level, PB.new$Grip_Level, show.row.prc = TRUE, show.legend = TRUE, file = "apa_GRIP.doc")
+sjt.xtab(PB.new$MC_Level, PB.new$Grip_Level, show.col.prc = TRUE, show.legend = TRUE, file = "apa_GRIP.doc")
 
-CrossTable(PB.new$MC_Level, PB.new$Grip_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE, prop.t = FALSE, asresid = TRUE)
+CrossTable(PB.new$MC_Level, PB.new$Grip_Level, format=c("SPSS"), prop.r = FALSE, prop.c = TRUE, prop.t = FALSE, asresid = TRUE)
 
 ggplot(PB,aes(x = MC_Level, y = Grip_Class))+
   geom_violin()+
@@ -182,7 +182,7 @@ Probability data from the Chi Square analyses are shown in Tables 1 and 2. No pa
 ```{r}
 sex.diff <- ftable(PB.new$Sex, PB.new$MC_Level, PB.new$PACER_Level)
 
-prop.table(sex.diff, margin = 1)
+prop.table(sex.diff, margin = 2)
 
 Male <- subset(PB.new, Sex == "Male")
 
@@ -201,7 +201,7 @@ CrossTable(Male$MC_Level, Male$Grip_Level, format=c("SPSS"), prop.r = TRUE, prop
 ```{r}
 CRF.diff <- ftable(PB.new$MC_Level, PB.new$PACER_Level)
 
-CRF.prop <- prop.table(CRF.diff, margin = 1)
+CRF.prop <- prop.table(CRF.diff, margin = 2)
 
 #Let's look at all the totals for this table.
 
