@@ -21,12 +21,32 @@ library(flextable)
 library(officer)
 library(apaTables)
 library(here)
+library(bibtex)
+
+```
+# Citations
+```{r}
+write.bib(c('apaTables', "officer", "sjPlot", "flextable", "qwraps2",
+            "kableExtra", "tidyverse"), 
+          file = "PB.bib", 
+          append = TRUE, 
+          verbose = TRUE)
+
+```
+### Checking for problems
+```{r}
+PB <- read_csv(here("Data Files", "A Plus Data.csv"))
+
+table(PB$ethnicity)
+
+PB$PartID[PB$ethnicity == 999]
+
+PB$ethnicity[PB$ethnicity > 10] <- NA
+
+table(PB$ethnicity)
 ```
 
-
 ```{r}
-PB <- read.csv(here("Data Files", "A Plus Data.csv"), header = TRUE, sep = ",")
-
 PB <- PB %>%
            mutate(Sex = factor(sex,
                                 labels = c("Male", "Female")),
@@ -35,19 +55,22 @@ PB <- PB %>%
                   Grip_Level = factor(Grip_Class,
                                 labels = c("Low", "Moderate", "High")),
                   PACER_Level = factor(PACER_HFZ,
-                                labels = c("Health Risk", "Needs Improvement", "Healthy")))
+                                labels = c("Health Risk", "Needs Improvement", "Healthy")),
+                  Ethnicity = factor(ethnicity,
+                                     labels = c("African American", "non-Hispanic White", 
+                                                "Hispanic", "Other")))
 
 PB
 ```
 *Descriptive Statistics*
 ```{r}
 
-descriptives <- subset(PB, select = c(MC_Level, Sex, Age_Test_yrs, BMI, PACER_VO2max, Grip_Max_Mean_kg))
+descriptives <- subset(PB, select = c(MC_Level, Sex, Ethnicity, Age_Test_yrs, StaHt, Weightkg, 
+                                      BMI, PACER_VO2max, Grip_Max_Mean_kg))
 
 descriptives
 
-participants <-
-  list("Age" = 
+participants <- list("Age" = 
          list("min"       = ~ min(Age_Test_yrs),
               "mean (sd)" = ~ qwraps2 :: mean_sd(Age_Test_yrs),
               "max"       = ~ max (Age_Test_yrs)))
@@ -58,7 +81,8 @@ age
 
 PB %>%
   group_by(Sex, MC_Level, Grip_Level) %>%
-  summarise(Sex_Count=n(), BMI = mean(BMI),
+  summarise(Sex_Count=n(), 
+            BMI = mean(BMI),
           .groups = "drop")
 
 boys <- 128/244
@@ -67,23 +91,41 @@ boys
 girls <- 116/244
 girls
 
+gender_tib <- descriptives %>%
+  group_by(Sex) %>%
+  summarise(N = n()) %>%
+  mutate(props = round(N/sum(N), 
+                       digits = 3)) %>%
+ ungroup
+
+ethnic_tib<- descriptives %>%
+  group_by(Ethnicity) %>%
+  summarise(N = n()) %>%
+  mutate(props = round(N/sum(N), 
+                       digits = 3)) %>%
+ ungroup
 ```
 
 *APA Table for Descriptive Stats (Packages: qwraps2; flextable; officer)*
 ```{r}
 options(qwraps2_markup = "markdown")
 our_summary1 <-
-  list("BMI" =
-       list("min"       = ~ min(BMI),
-            "median"    = ~ median(BMI),
-            "max"       = ~ max(BMI),
-            "mean (sd)" = ~ qwraps2::mean_sd(BMI)),
+  list("Height (cm)" =
+       list("min"       = ~ min(StaHt),
+            "median"    = ~ median(StaHt),
+            "max"       = ~ max(StaHt),
+            "mean (sd)" = ~ qwraps2::mean_sd(StaHt)),
+       "Weight (kg)" =
+       list("min"       = ~ min(Weightkg),
+            "median"    = ~ median(Weightkg),
+            "max"       = ~ max(Weightkg),
+            "mean (sd)" = ~ qwraps2::mean_sd(Weightkg)),
        "Vo2 Max" =
        list("min"       = ~ min(PACER_VO2max),
             "median"    = ~ median(PACER_VO2max),
             "max"       = ~ max(PACER_VO2max),
             "mean (sd)" = ~ qwraps2::mean_sd(PACER_VO2max)),
-       "Grip Max Average in kg" =
+       "Grip Max Average (kg)" =
        list("min"       = ~ min(Grip_Max_Mean_kg),
             "median"    = ~ median(Grip_Max_Mean_kg),
             "max"       = ~ max(Grip_Max_Mean_kg),
@@ -104,9 +146,15 @@ level.sum <- theme_booktabs(level.sum)
 
 level.sum <- align(level.sum, align = "center", part = "body")
 
-level.sum <- set_caption(level.sum, caption = "Descriptive Statistics of Scores on Level of Motor Competence")
+level.sum <- set_caption(level.sum, 
+                          caption = "Descriptive Statistics of Scores on Level of Motor 
+                                     Competence")
 
-level.sum <- footnote(level.sum, i = 9, j = 1, value = as_paragraph("Grip Max Average was calculated by averaging maximum grip values for the right and left hands."))
+level.sum <- footnote(level.sum, 
+                      i = 9, 
+                      j = 1, 
+                      value = as_paragraph("Grip Max Average was calculated by averaging 
+                      maximum grip values for the right and left hands."))
 
 level.sum <- autofit(level.sum)
 
@@ -114,7 +162,7 @@ level.sum
 
 word_export <- read_docx()
 word_export <- body_add_flextable(word_export, level.sum)
-print(word_export, 'Finally.docx')
+print(word_export, 'new table.docx')
 ```
 *Need to write up this table*
 
@@ -136,9 +184,9 @@ pwr.chisq.test(w=.22, N= N, df=a)
 
 *APA Correlation Table for Grip, V02, and MCA Overall (Packages: apaTables)*
 ```{r}
-correlations <- subset(PB, select = c(Sex, MCA_Overall, PACER_VO2max, Allo_Grip_Max_Mean_KG))
+correlations <- subset(PB, select = c(Sex, MCA_Overall, Allo_Grip_Max_Mean_KG, PACER_VO2max))
 
-apa.cor.table(correlations, table.number = 4, filename = "New Grip Correlation.doc")
+apa.cor.table(correlations, table.number = 2, filename = "New Correlation Table.doc")
 
 ```
 **Results**
@@ -164,9 +212,11 @@ ggplot(PB,aes(x = MC_Level, y = PACER_HFZ))+
 *Looking at Cross Table for MSF (Packages: sjPlot; gmodels)*
 ```{r}
 
-sjt.xtab(PB.new$MC_Level, PB.new$Grip_Level, show.col.prc = TRUE, show.legend = TRUE, file = "apa_GRIP.doc")
+sjt.xtab(PB.new$MC_Level, PB.new$Grip_Level, show.col.prc = TRUE, show.legend = TRUE, 
+         file = "apa_GRIP.doc")
 
-CrossTable(PB.new$MC_Level, PB.new$Grip_Level, format=c("SPSS"), prop.r = FALSE, prop.c = TRUE, prop.t = FALSE, asresid = TRUE)
+CrossTable(PB.new$MC_Level, PB.new$Grip_Level, format=c("SPSS"), prop.r = FALSE, prop.c = TRUE,
+           prop.t = FALSE, asresid = TRUE)
 
 ggplot(PB,aes(x = MC_Level, y = Grip_Class))+
   geom_violin()+
@@ -188,13 +238,17 @@ Male <- subset(PB.new, Sex == "Male")
 
 Female <- subset(PB.new, Sex == "Female")
 
-CrossTable(Female$MC_Level, Female$PACER_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE, prop.t = FALSE, asresid = TRUE, prop.chisq = FALSE)
+CrossTable(Female$MC_Level, Female$PACER_Level, format=c("SPSS"), prop.r = TRUE, 
+           prop.c = FALSE, prop.t = FALSE, asresid = TRUE, prop.chisq = FALSE)
 
-CrossTable(Male$MC_Level, Male$PACER_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE, prop.t = FALSE, asresid = TRUE, prop.chisq = FALSE)
+CrossTable(Male$MC_Level, Male$PACER_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE, 
+           prop.t = FALSE, asresid = TRUE, prop.chisq = FALSE)
 
-CrossTable(Female$MC_Level, Female$Grip_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE, prop.t = FALSE, asresid = TRUE, prop.chisq = FALSE)
+CrossTable(Female$MC_Level, Female$Grip_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE,
+           prop.t = FALSE, asresid = TRUE, prop.chisq = FALSE)
 
-CrossTable(Male$MC_Level, Male$Grip_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE, prop.t = FALSE, asresid = TRUE, prop.chisq = FALSE)
+CrossTable(Male$MC_Level, Male$Grip_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE, 
+           prop.t = FALSE, asresid = TRUE, prop.chisq = FALSE)
 ```
 
 *Looking at 95% Confidence Interval for Dfference Between Low and High MC for "Health-Risk" CRF*
@@ -300,7 +354,8 @@ MSF.prop <-prop.table(MSF.diff, margin = 1)
 sum(38+124+82)
 
 # If there is no difference in conditions, here is our best
-# estimate of the proportion of people who are considered a health risk in the population for CRF.
+# estimate of the proportion of people who are considered a health risk in the population for 
+# CRF.
 
 38/244
 
