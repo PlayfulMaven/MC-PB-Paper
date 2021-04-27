@@ -22,8 +22,8 @@ library(officer)
 library(apaTables)
 library(here)
 library(bibtex)
-
 ```
+
 # Citations
 ```{r}
 write.bib(c('apaTables', "officer", "sjPlot", "flextable", "qwraps2",
@@ -33,6 +33,7 @@ write.bib(c('apaTables', "officer", "sjPlot", "flextable", "qwraps2",
           verbose = TRUE)
 
 ```
+
 ### Checking for problems
 ```{r}
 PB <- read_csv(here("Data Files", "A Plus Data.csv"))
@@ -62,6 +63,8 @@ PB <- PB %>%
 
 PB
 ```
+
+
 *Descriptive Statistics*
 ```{r}
 
@@ -189,7 +192,9 @@ correlations <- subset(PB, select = c(Sex, MCA_Overall, Allo_Grip_Max_Mean_KG, P
 apa.cor.table(correlations, table.number = 2, filename = "New Correlation Table.doc")
 
 ```
-**Results**
+
+## Results
+
 ***
 Bivariate correlations among CRF, MSF, and MC variables were generally low to moderate (r = .23–.38) (see Table 2 for individual CRF, MSF, and MC correlations). 
 
