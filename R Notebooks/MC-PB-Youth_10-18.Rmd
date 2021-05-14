@@ -36,7 +36,7 @@ write.bib(c('apaTables', "officer", "sjPlot", "flextable", "qwraps2",
 
 ### Checking for problems
 ```{r}
-PB <- read_csv(here("Data Files", "A Plus Data.csv"))
+PB <- read_csv(here("Data Files", "csv Files", "A Plus Data.csv"))
 
 table(PB$ethnicity)
 
