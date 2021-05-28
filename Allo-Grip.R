@@ -11,7 +11,7 @@ library(here)
 
 PB <- read_csv(here("Data Files", "csv Files", "A Plus Data.csv"))
 
-PB <- rowid_to_column(PB)
+view(head(PB))
 
 male <- PB[, c("rowid", "PartID", "sex","Age_Test_yrs", "StaHt", "Weightkg", "Grip_Max_Mean_kg")]
 
@@ -101,15 +101,24 @@ huh <- PB[, c(1, 2, 24, 37, 26)]
 
 # Formula:  Grip score / ([BM^exponent] * [Ht^exponent])
 
-allo_grip <- function(id, sex,  age, height_in_cm, weight_in_kg) {
+allo_grip <- function(df, id, sex){#,  age, height_in_meters, weight_in_kg, grip_value_in_kg) {
 
-male <- PB[, c("rowid", "PartID", "sex","Age_Test_yrs", "StaHt", "Weightkg", "Grip_Max_Mean_kg")]
+  male <- df %>%
+    filter(sex == 1) %>%
+    select(all_of(c(id, sex)))#, age, height_in_meters, weight_in_kg, grip_value_in_kg)))
+  
+#male <- df[df$sex == 1, ]
+  
+#male <- male[, c(id, sex, age, height_in_cm, weight_in_kg, 
+    #           grip_value_in_kg)]
+}
 
-male <- male[male$sex == 1, ]
+test <- allo_grip(PB, "PartID", "sex")
 
-female <- PB[, c("rowid", "PartID", "sex","Age_Test_yrs", "StaHt", "Weightkg", "Grip_Max_Mean_kg")]
+female <- df[df$sex == 0, ]
 
-female <- female[female$sex == 0, ]
+female <- female[, c("PartID", "sex","Age_Test_yrs", "StaHt", "Weightkg", 
+                 "Grip_Max_Mean_kg")]
 
 # Loading reference tables
 
@@ -175,6 +184,9 @@ female <- female %>%
 
 female$allo_grip <- (female$Grip_Max_Mean_kg) / ((female$Weightkg^female$`B2 (BM)`) *
                                                    (female$Height^female$`B1 (Ht)`))
+
+# Making Keys and Joining
+
 female_key <- female[, c("PartID", "allo_grip")]
 
 grip_key <- rbind(male_key, female_key)
@@ -185,7 +197,6 @@ PB <- PB %>%
   left_join(grip_key,
             by = "PartID")
 
-}
 
 
 # Allometric Grip Percentile -------------------------------------------------------------
