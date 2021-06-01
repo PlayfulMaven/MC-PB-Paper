@@ -229,9 +229,7 @@ ggplot(PB,aes(x = MC_Level, y = Grip_Class))+
   stat_summary(fun = "mean", color = "red", geom = "point", size = 3)
 ```
 
-Chi-square analyses demonstrated statistically significant models; for both CRF (χ2 (4, n=244) = 22.83, p < 0.001, Cramer’s V = .22) and MSF (χ2 (4, n=244) = 24.28, p < 0.001, Cramer’s V = .22). According to Cohen’s conventions for effect sizes (Cohen, 1998), the results indicated small effect sizes. 
 
-Probability data from the Chi Square analyses are shown in Tables 1 and 2. No participants who exhibited low MC, (n=24, 0%), met the healthy fitness zone standards for PACER performance. Further, 87.5%, (21/24), of low skilled youth’s scores were in the lowest category of CRF (i.e., “Health-Risk”). *Conversely, 50% (15/30) of high MC were high in CRF????* Only 26.7%, (8/30), of high skilled youth displayed scores within the lowest category of CRF. For grip strength, 20.8%, (5/24), of low skilled youth demonstrated ≥80%tile; however, 100% high skilled youth, (30/30), displayed at least moderate grip strength (>20%ile).
 
 *Looking for Sex Differences (Packages: sjPlot; gmodels)* **Did not write about sex differences**
 ```{r}
