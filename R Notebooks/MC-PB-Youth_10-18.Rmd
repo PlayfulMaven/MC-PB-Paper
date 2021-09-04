@@ -1,33 +1,30 @@
 ---
-title: "Proficiency Barrier"
+title: "Evaluation of a motor competence “proficiency barrier” to health-related fitness in youth"
 author: "Cade Abrams and Bryan Terlizzi"
 output:
   html_document
 ---
 
-
-```{r}
+```{r include=FALSE}
+library(here)
 library(tidyverse)
-library(MBESS)
-library(pwr)
-library(dplyr)
-library(gmodels)
 library(semPower)
 library(sjPlot)
-library(sjlabelled)
 library(qwraps2)
-library(tinytex)
 library(flextable)
 library(officer)
 library(apaTables)
-library(here)
-library(bibtex)
+library(irr)
+
+library(bibtex) # For finding and creating citations
 ```
 
 # Citations
-```{r}
+```{r include=FALSE}
+# using bibtex package
+
 write.bib(c('apaTables', "officer", "sjPlot", "flextable", "qwraps2",
-            "kableExtra", "tidyverse"), 
+            "kableExtra", "tidyverse", "irr"), 
           file = "PB.bib", 
           append = TRUE, 
           verbose = TRUE)
@@ -35,40 +32,36 @@ write.bib(c('apaTables', "officer", "sjPlot", "flextable", "qwraps2",
 ```
 
 ### Checking for problems
-```{r}
-PB <- read_csv(here("Data Files", "csv Files", "A Plus Data.csv"))
+```{r echo=FALSE}
+PB <- read_csv(here("Data Files", "Clean Data", "PB.csv"))
 
-table(PB$ethnicity)
+# Making factors
+PB <- PB %>% 
+  mutate(Grip_level = factor(allo_grip_class,
+                             levels = c(1, 2, 3),
+                             labels = c("Low", "Moderate", "High")),
+         Pacer_level = factor(PACER_HFZ,
+                              levels = c(1, 2, 3),
+                              labels = c("Health Risk", "Needs Improvement", "Healthy")),
+         MC_level = factor(MCA_Class,
+                           levels = c(1, 2, 3),
+                           labels = c("Low", "Moderate", "High")))
 
-PB$PartID[PB$ethnicity == 999]
+# Making Sex and Ethnicity factors
 
-PB$ethnicity[PB$ethnicity > 10] <- NA
+PB <- PB %>% 
+  mutate_at(c("Sex", "Ethnicity"), as.factor)
 
-table(PB$ethnicity)
-```
+head(PB)
 
-```{r}
-PB <- PB %>%
-           mutate(Sex = factor(sex,
-                                labels = c("Male", "Female")),
-                  MC_Level = factor(MCA_Class,
-                                       labels = c("Low", "Moderate", "High" )),
-                  Grip_Level = factor(Grip_Class,
-                                labels = c("Low", "Moderate", "High")),
-                  PACER_Level = factor(PACER_HFZ,
-                                labels = c("Health Risk", "Needs Improvement", "Healthy")),
-                  Ethnicity = factor(ethnicity,
-                                     labels = c("African American", "non-Hispanic White", 
-                                                "Hispanic", "Other")))
-
-PB
+table(PB$Ethnicity)
 ```
 
 
-*Descriptive Statistics*
-```{r}
-
-descriptives <- subset(PB, select = c(MC_Level, Sex, Ethnicity, Age_Test_yrs, StaHt, Weightkg, 
+## Descriptive Statistics
+```{r echo=FALSE}
+# Using qwraps2
+descriptives <- subset(PB, select = c(MC_level, Sex, Ethnicity, Age_Test_yrs, StaHt, Weightkg, 
                                       BMI, PACER_VO2max, Grip_Max_Mean_kg))
 
 descriptives
@@ -83,16 +76,11 @@ age <- summary_table(descriptives, participants)
 age
 
 PB %>%
-  group_by(Sex, MC_Level, Grip_Level) %>%
+  group_by(Sex, MC_level, Grip_level) %>%
   summarise(Sex_Count=n(), 
             BMI = mean(BMI),
           .groups = "drop")
 
-boys <- 128/244
-boys
-
-girls <- 116/244
-girls
 
 gender_tib <- descriptives %>%
   group_by(Sex) %>%
@@ -101,7 +89,7 @@ gender_tib <- descriptives %>%
                        digits = 3)) %>%
  ungroup
 
-ethnic_tib<- descriptives %>%
+ethnic_tib <- descriptives %>%
   group_by(Ethnicity) %>%
   summarise(N = n()) %>%
   mutate(props = round(N/sum(N), 
@@ -109,8 +97,8 @@ ethnic_tib<- descriptives %>%
  ungroup
 ```
 
-*APA Table for Descriptive Stats (Packages: qwraps2; flextable; officer)*
-```{r}
+### APA Table for Descriptive Stats (Packages: qwraps2; flextable; officer)
+```{r echo=FALSE}
 options(qwraps2_markup = "markdown")
 our_summary1 <-
   list("Height (cm)" =
@@ -123,22 +111,22 @@ our_summary1 <-
             "median"    = ~ median(Weightkg),
             "max"       = ~ max(Weightkg),
             "mean (sd)" = ~ qwraps2::mean_sd(Weightkg)),
-       "Vo2 Max" =
-       list("min"       = ~ min(PACER_VO2max),
-            "median"    = ~ median(PACER_VO2max),
-            "max"       = ~ max(PACER_VO2max),
-            "mean (sd)" = ~ qwraps2::mean_sd(PACER_VO2max)),
        "Grip Max Average (kg)" =
        list("min"       = ~ min(Grip_Max_Mean_kg),
             "median"    = ~ median(Grip_Max_Mean_kg),
             "max"       = ~ max(Grip_Max_Mean_kg),
-            "mean (sd)" = ~ qwraps2::mean_sd(Grip_Max_Mean_kg))
+            "mean (sd)" = ~ qwraps2::mean_sd(Grip_Max_Mean_kg)),
+       "Vo2 Max" =
+       list("min"       = ~ min(PACER_VO2max),
+            "median"    = ~ median(PACER_VO2max),
+            "max"       = ~ max(PACER_VO2max),
+            "mean (sd)" = ~ qwraps2::mean_sd(PACER_VO2max))
        )
 
 whole <- summary_table(descriptives, our_summary1)
 whole
 
-level.sum <- summary_table(dplyr::group_by(descriptives, MC_Level), our_summary1)
+level.sum <- summary_table(dplyr::group_by(descriptives, MC_level), our_summary1)
 level.sum
 
 level.sum <- as.data.frame(level.sum)
@@ -163,99 +151,154 @@ level.sum <- autofit(level.sum)
 
 level.sum
 
-word_export <- read_docx()
-word_export <- body_add_flextable(word_export, level.sum)
-print(word_export, 'new table.docx')
-```
-*Need to write up this table*
-
-**Statistical Analysis**
-
-***
-To assess whether there was evidence of a MC proficiency barrier associated with cardiorespiratory fitness and muscular strength, we conducted two 3-way chi-square tests of independence. In both analyses, we used MC as the independent variable to determine the probability of MC levels predicting CRF levels and muscular strength level classifications. Additionally, because we normalized the data for both age and sex, our analyses included the entire sample. We implemented a p ≤ .05 to determine statistical significance. We measured effect size for the chi-square tests of independence using Cramer’s V. We used R (R Core Team, 2020) with the (blank package and cite) to conduct a post hoc power analysis using the effect sizes (i.e., Cramer’s V) from both 3-way chi-square tests of independence. We determined our power to detect a small effect (V = .21) for CRF to be .78 and our power for detecting a small effect (V = .22) for MSF as .80. 
-
-*Measuring Post Hoc Power (Packages: semPower)*
-```{r}
-N <- nrow(PB)
-
-a <- (length(unique(PB$MC_Level))-1)*(length(unique(PB$Grip_Class))-1)
-  
-pwr.chisq.test(w=.22, N= N, df=a)
-
+#word_export <- read_docx()
+#word_export <- body_add_flextable(word_export, level.sum)
+#print(word_export, 'new table.docx')
 ```
 
+### Calculating ICC for All Tests (Motor & Grip)
 
-*APA Correlation Table for Grip, V02, and MCA Overall (Packages: apaTables)*
+#### KTK Platforms ICC
+```{r echo=FALSE}
+platforms <- PB[, c("KTKpf1", "KTKpf2")]
+
+icc(platforms,
+    model = "twoway",
+    type = "agreement",
+    unit = "single")
+
+# Platforms ICC = .677 95%CI (.27, .834) Moderate ICC
+```
+
+#### Lateral Jumping
+```{r echo=FALSE}
+LJ <- PB[, c("KTKjump1", "KTKjump2")]
+
+icc(LJ,
+    model = "twoway",
+    type = "agreement",
+    unit = "single")
+
+# Lateral Jumping ICC = .848 95%CI (.808, .88) Good ICC
+```
+
+#### Shuttle Run
+```{r echo=FALSE}
+SHR <- PB[, c("SHR1", "SHR2")]
+
+icc(SHR,
+    model = "twoway",
+    type = "agreement",
+    unit = "single")
+
+# Shuttle Run ICC = .891 95%CI (.861, .915) Good ICC
+```
+
+#### SLJ ICC
+```{r echo=FALSE}
+jump <- PB[, c("SLJdistance1", "SLJdistance2", "SLJdistance3")]
+
+icc(jump,
+    model = "twoway",
+    type = "agreement",
+    unit = "single")
+
+# Jump ICC = .933 95%CI (.918, .946) Excellent ICC
+```
+
+#### Throwing ICC
+```{r echo=FALSE}
+throw <- PB[, c("ThrowSpeed1_mph", "ThrowSpeed2_mph", "ThrowSpeed3_mph")]
+
+icc(throw,
+    model = "twoway",
+    type = "agreement",
+    unit = "single")
+
+# Throw ICC = .949 95%CI (.937, .959) Excellent ICC
+```
+
+#### Kicking ICC
 ```{r}
-correlations <- subset(PB, select = c(Sex, MCA_Overall, Allo_Grip_Max_Mean_KG, PACER_VO2max))
+kick <- PB[, c("KickSpeed1_mph", "KickSpeed2_mph", "KickSpeed3_mph")]
+
+icc(kick,
+    model = "twoway",
+    type = "agreement",
+    unit = "single")
+
+# Kick ICC = .769 95%CI (.723, .809) Good ICC
+```
+
+#### Grip ICC
+```{r echo=FALSE}
+grip <- PB[, c("GripR1", "GripR2", "GripR3", "GripL1", "GripL2", "GripL3")]
+
+icc(grip,
+    model = "twoway",
+    type = "agreement",
+    unit = "single")
+
+# Grip ICC = .921 95%CI (.899, .938) Excellent ICC
+```
+
+
+#### APA Correlation Table for Grip, V02, and MCA Overall (Packages: apaTables)
+```{r}
+correlations <- subset(PB, select = c(Sex, MCA_Overall, allo_grip_percentile, PACER_VO2max))
 
 apa.cor.table(correlations, table.number = 2, filename = "New Correlation Table.doc")
 
 ```
 
-## Results
 
-***
-Bivariate correlations among CRF, MSF, and MC variables were generally low to moderate (r = .23–.38) (see Table 2 for individual CRF, MSF, and MC correlations). 
-
-***
-
-*Looking at Cross Table for CRF (Packages: sjPlot; gmodels)*
+## Looking at Cross Table for MSF (Packages: sjPlot)
 ```{r}
-PB.new <- subset(PB, select=c(Sex, MC_Level, Grip_Level, PACER_Level))
+PB.new <- subset(PB, select=c(Sex, MC_level, Grip_level, Pacer_level))
 
-sjt.xtab(PB.new$MC_Level, PB.new$PACER_Level, show.col.prc = TRUE, show.legend = TRUE,  file = "apa_PACER.doc")
-
-CrossTable(PB.new$MC_Level, PB.new$PACER_Level, format=c("SPSS"), prop.r = FALSE, prop.c = TRUE, prop.t = FALSE, asresid = TRUE)
-
-ggplot(PB,aes(x = MC_Level, y = PACER_HFZ))+
-  geom_violin()+
-  geom_jitter(height = 0, width = 0.03)+
-  stat_summary(fun = "mean", color = "red", geom = "point", size = 3)
-```
-
-*Looking at Cross Table for MSF (Packages: sjPlot; gmodels)*
-```{r}
-
-sjt.xtab(PB.new$MC_Level, PB.new$Grip_Level, show.col.prc = TRUE, show.legend = TRUE, 
+sjt.xtab(PB.new$MC_level, 
+         PB.new$Grip_level, 
+         show.row.prc = TRUE, 
+         show.legend = TRUE, 
          file = "apa_GRIP.doc")
 
-CrossTable(PB.new$MC_Level, PB.new$Grip_Level, format=c("SPSS"), prop.r = FALSE, prop.c = TRUE,
-           prop.t = FALSE, asresid = TRUE)
-
-ggplot(PB,aes(x = MC_Level, y = Grip_Class))+
+ggplot(PB,aes(x = MC_level, y = allo_grip_class))+
   geom_violin()+
   geom_jitter(height = 0, width = 0.03)+
   stat_summary(fun = "mean", color = "red", geom = "point", size = 3)
 ```
 
 
-
-*Looking for Sex Differences (Packages: sjPlot; gmodels)* **Did not write about sex differences**
+## Looking at Cross Table for CRF (Packages: sjPlot)
 ```{r}
-sex.diff <- ftable(PB.new$Sex, PB.new$MC_Level, PB.new$PACER_Level)
+sjt.xtab(PB.new$MC_level, 
+         PB.new$Pacer_level, 
+         show.row.prc = TRUE, 
+         show.legend = TRUE,  
+         file = "apa_PACER.doc")
 
-prop.table(sex.diff, margin = 2)
-
-Male <- subset(PB.new, Sex == "Male")
-
-Female <- subset(PB.new, Sex == "Female")
-
-CrossTable(Female$MC_Level, Female$PACER_Level, format=c("SPSS"), prop.r = TRUE, 
-           prop.c = FALSE, prop.t = FALSE, asresid = TRUE, prop.chisq = FALSE)
-
-CrossTable(Male$MC_Level, Male$PACER_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE, 
-           prop.t = FALSE, asresid = TRUE, prop.chisq = FALSE)
-
-CrossTable(Female$MC_Level, Female$Grip_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE,
-           prop.t = FALSE, asresid = TRUE, prop.chisq = FALSE)
-
-CrossTable(Male$MC_Level, Male$Grip_Level, format=c("SPSS"), prop.r = TRUE, prop.c = FALSE, 
-           prop.t = FALSE, asresid = TRUE, prop.chisq = FALSE)
+ggplot(PB,aes(x = MC_Level, y = PACER_HFZ)) +
+  geom_violin()+
+  geom_jitter(height = 0, width = 0.03)+
+  stat_summary(fun = "mean", color = "red", geom = "point", size = 3)
 ```
 
-*Looking at 95% Confidence Interval for Dfference Between Low and High MC for "Health-Risk" CRF*
-```{r}
+
+### Measuring Post Hoc Power (Packages: semPower)
+
+```{r eval=FALSE, include=FALSE}
+N <- nrow(PB)
+
+a <- (length(unique(PB$MC_level))-1)*(length(unique(PB$PACER_HFZ))-1)
+  
+pwr.chisq.test(w = .217, N = N, df = a)
+
+```
+
+# Did not use any of the 95% CI below for differences between groups
+
+##### Looking at 95% Confidence Interval for Difference Between Low and High MC for "Health-Risk" CRF
+```{r eval=FALSE, include=FALSE}
 CRF.diff <- ftable(PB.new$MC_Level, PB.new$PACER_Level)
 
 CRF.prop <- prop.table(CRF.diff, margin = 2)
@@ -302,8 +345,8 @@ contrast.1 + moe.1
 
 ```
 
-*Looking at 95% Confidence Interval for Dfference Between Low and High MC for "Healthy" CRF*
-```{r}
+#### Looking at 95% Confidence Interval for Dfference Between Low and High MC for "Healthy" CRF
+```{r eval=FALSE, include=FALSE}
 
 #Let's look at all the totals for this table.
 
@@ -346,8 +389,8 @@ contrast.2 - moe.2
 contrast.2 + moe.2
 ```
 
-*Looking at 95% Confidence Interval for Dfference Between Low and High MC for "Low" MSF*
-```{r}
+#### Looking at 95% Confidence Interval for Dfference Between Low and High MC for "Low" MSF
+```{r eval=FALSE, include=FALSE}
 MSF.diff <- ftable(PB.new$MC_Level, PB.new$Grip_Level)
 
 MSF.prop <-prop.table(MSF.diff, margin = 1)
@@ -395,8 +438,8 @@ contrast.3 + moe.3
 
 ```
 
-*Looking at 95% Confidence Interval for Dfference Between Low and High MC for "High" MSF*
-```{r}
+#### Looking at 95% Confidence Interval for Dfference Between Low and High MC for "High" MSF
+```{r eval=FALSE, include=FALSE}
 
 #Let's look at all the totals for this table.
 
@@ -440,5 +483,3 @@ contrast.4 + moe.4
 
 ```
 
-*** 
-We used the Scheffé-like method to determine specific differences between MC levels and HRF outcomes. In this sample, the difference in percentage points for low CRF (i.e., “Health-Risk”) between low MC and high MC groups was 59 percentile points (95% CI [48, 70]). Thus, the low MC group exhibited 59 percentile points more scores that failed to exceed the standards for the lowest category of CRF when compared to the high MC group. Additionally, the difference in percentage points for low MSF (i.e., ≤ 20%tile) between low MC and high MC groups was 48 percentage points (95% CI [38, 58]). In essence, the low MC group presented 48 percentage points more participants who failed to attain at least a moderate level of grip strength when compared to the high MC group.

@@ -11,13 +11,11 @@ library(here)
 
 PB <- read_csv(here("Data Files", "csv Files", "A Plus Data.csv"))
 
-view(head(PB))
-
-male <- PB[, c("rowid", "PartID", "sex","Age_Test_yrs", "StaHt", "Weightkg", "Grip_Max_Mean_kg")]
+male <- PB[, c("PartID", "sex","Age_Test_yrs", "StaHt", "Weightkg", "Grip_Max_Mean_kg")]
 
 male <- male[male$sex == 1, ]
 
-female <- PB[, c("rowid", "PartID", "sex","Age_Test_yrs", "StaHt", "Weightkg", "Grip_Max_Mean_kg")]
+female <- PB[, c("PartID", "sex","Age_Test_yrs", "StaHt", "Weightkg", "Grip_Max_Mean_kg")]
 
 female <- female[female$sex == 0, ]
 
@@ -39,7 +37,7 @@ wts<- wts %>%
 
 male$Height <- male$StaHt/100 # make sure to write something in to change cm to meters
 
-male <- male[, -5] # then drop the centimeters
+male <- male[, -4] # then drop the centimeters
 
 df1 <- setDT(male[, c("PartID", "Age_Test_yrs")])
 df2 <- setDT(wts)
@@ -72,7 +70,7 @@ wts<- wts %>%
 
 female$Height <- female$StaHt/100 # make sure to write something in to change cm to meters
 
-female <- female[, -5] # then drop the centimeters
+female <- female[, -4] # then drop the centimeters
 
 df1 <- setDT(female[, c("PartID", "Age_Test_yrs")])
 df2 <- setDT(wts)
@@ -201,8 +199,106 @@ PB <- PB %>%
 
 # Allometric Grip Percentile -------------------------------------------------------------
 
+male_grip <- read_csv(here("Ref Tables", "Allometric Grip Norms - Boys.csv"))
 
+percents <- male_grip[c(3:16), c(2:14)]
 
+percents <- as.data.frame(t(percents))
+
+colnames(percents) <- c(".01", ".05", ".10", ".20", ".21", ".30", ".40", ".50", ".60", ".70",
+                        ".80", ".90", ".95", ".99")
+
+percents$Age <- row.names(percents)
+
+hmm <- percents %>% 
+  pivot_longer(c(".01", ".05", ".10", ".20", ".21", ".30", ".40", ".50", ".60", ".70",
+                 ".80", ".90", ".95", ".99"),
+               names_to = "allo_grip_percentile",
+               values_to = "allo_grip") %>%
+  relocate("allo_grip", .before = "allo_grip_percentile")
+
+male_percent <- male[, c("PartID", "Age_Test_yrs", "allo_grip")]
+
+df_percent <- setDT(male[, c("PartID", "Age_Test_yrs", "allo_grip")])
+df_percent$Age_Test_yrs <- floor(df_percent$Age_Test_yrs)
+
+hmm <- hmm %>%
+  mutate_at(1, as.numeric)
+
+df_prct_key <- setDT(hmm)
+
+df_prct_final <- df_prct_key[df_percent, 
+                             on = c("Age" = "Age_Test_yrs", "allo_grip" = "allo_grip"),
+                             roll = Inf]
+
+male_key <- df_prct_final[, c("PartID", "allo_grip_percentile")]
+
+#### Female Percentiles
+female_grip <- read_csv(here("Ref Tables", "Allometric Grip Norms - Girls.csv"))
+
+percents <- female_grip[c(3:16), c(2:14)]
+
+percents <- as.data.frame(t(percents))
+
+colnames(percents) <- c(".01", ".05", ".10", ".20", ".21", ".30", ".40", ".50", ".60", ".70",
+                        ".80", ".90", ".95", ".99")
+
+percents$Age <- row.names(percents)
+
+prct_key <- percents %>% 
+  pivot_longer(c(".01", ".05", ".10", ".20", ".21", ".30", ".40", ".50", ".60", ".70",
+                 ".80", ".90", ".95", ".99"),
+               names_to = "allo_grip_percentile",
+               values_to = "allo_grip") %>%
+  relocate("allo_grip", .before = "allo_grip_percentile")
+
+female_percent <- female[, c("PartID", "Age_Test_yrs", "allo_grip")]
+
+df_percent <- setDT(female[, c("PartID", "Age_Test_yrs", "allo_grip")])
+df_percent$Age_Test_yrs <- floor(df_percent$Age_Test_yrs)
+
+prct_key <- prct_key %>%
+  mutate_at(1, as.numeric)
+
+df_prct_key <- setDT(prct_key)
+
+df_prct_final <- df_prct_key[df_percent, 
+                             on = c("Age" = "Age_Test_yrs", "allo_grip" = "allo_grip"),
+                             roll = Inf]
+
+female_key <- df_prct_final[, c("PartID", "allo_grip_percentile")]
+
+percent_key <- rbind(male_key, female_key)
+
+PB <- PB %>%
+  left_join(percent_key,
+            by = "PartID")
+
+hmm <- PB[, c("PartID", "Grip_Percentile", "Grip_Class", "allo_grip_percentile")]
+
+PB <- PB %>%
+  mutate_at("allo_grip_percentile", as.numeric)
+
+PB$allo_grip_percentile <- PB$allo_grip_percentile*100
+
+PB$Allo_Grip_Max_Mean_KG <- PB$allo_grip
+
+PB <- PB[, -c(25:27)]
+
+PB <- PB[, -34]
+
+PB <- PB %>%
+  relocate("allo_grip_percentile", .before = "Grip_Max_Mean_kg")
+
+PB$allo_grip_class <- PB$allo_grip_percentile %>%
+  cut(breaks = c(0, 21, 80, Inf),
+      labels = c(1, 2, 3),
+      right = FALSE) 
+
+PB <- PB %>%
+  relocate("allo_grip_class", .before = "Grip_Max_Mean_kg")
+
+write_csv(PB, here("Data Files", "Clean Data", "PB.csv"))
 
 # Allometric Grip Score and Percentile ---------------------------------------------------
 
