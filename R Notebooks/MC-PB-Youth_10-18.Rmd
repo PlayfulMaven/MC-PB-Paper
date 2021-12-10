@@ -241,34 +241,6 @@ icc(grip,
 
 # Grip ICC = .921 95%CI (.899, .938) Excellent ICC
 ```
-### Do Correlations Change By MC Level?
-
-#### Low MC
-```{r}
-low_mc <- PB[PB$MC_level == "Low", ]
-
-cor.test(low_mc$MCA_Overall, low_mc$PACER_VO2max)
-
-cor.test(low_mc$MCA_Overall, low_mc$allo_grip_percentile)
-```
-
-#### Moderate MC
-```{r}
-mod_mc <- PB[PB$MC_level == "Moderate", ]
-
-cor.test(mod_mc$MCA_Overall, mod_mc$PACER_VO2max)
-
-cor.test(mod_mc$MCA_Overall, mod_mc$allo_grip_percentile)
-```
-
-#### High MC
-```{r}
-high_mc <- PB[PB$MC_level == "High", ]
-
-cor.test(high_mc$MCA_Overall, high_mc$PACER_VO2max)
-
-cor.test(high_mc$MCA_Overall, high_mc$allo_grip_percentile)
-```
 
 #### APA Correlation Table for Grip, V02, and MCA Overall (Packages: apaTables)
 ```{r}
