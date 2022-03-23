@@ -246,7 +246,7 @@ icc(grip,
 ```{r}
 correlations <- subset(PB, select = c(Sex, MCA_Overall, allo_grip_percentile, PACER_VO2max))
 
-apa.cor.table(correlations, table.number = 2, filename = "New Correlation Table.doc")
+apa.cor.table(correlations, table.number = 2)#, filename = "New Correlation Table.doc")
 ```
 
 
@@ -275,10 +275,8 @@ sjt.xtab(PB.new$MC_level,
          show.legend = TRUE,  
          file = "apa_PACER.doc")
 
-ggplot(PB,aes(x = MC_Level, y = PACER_HFZ)) +
-  geom_violin()+
-  geom_jitter(height = 0, width = 0.03)+
-  stat_summary(fun = "mean", color = "red", geom = "point", size = 3)
+ggplot(PB,aes(x = PB$MCA_Overall, y = PB$PACER_VO2max)) +
+  geom_point()
 ```
 
 
@@ -477,5 +475,61 @@ moe.4
 
 contrast.4 - moe.4
 contrast.4 + moe.4
+```
+
+```{r}
+cor.test(PB$MCA_Overall, PB$PACER_VO2max)
+```
+
+```{r}
+cor.test(PB$MCA_Overall, PB$allo_grip_percentile)
+```
+
+```{r}
+cor.test(PB$PerFat, PB$PACER_VO2max)
+cor.test(PB$PerFat, PB$allo_grip_percentile)
+cor.test(PB$PerFat, PB$MCA_Overall)
+
+cor.test(PB$PerFat, PB$KTKpf2)
+cor.test(PB$PerFat, PB$KTKjump2)
+cor.test(PB$PerFat, PB$SLJdistance2)
+cor.test(PB$PerFat, PB$ThrowSpeed2_mph)
+cor.test(PB$PerFat, PB$KickSpeed2_mph)
+cor.test(PB$PerFat, PB$SHR2)
+
+chisq.test(PB$PerFat_HFZ, PB$MCA_Class)
+
+sjt.xtab(PB$MC_level, 
+         PB$PerFat_HFZ, 
+         show.row.prc = TRUE, 
+         show.legend = TRUE)
+
+sjt.xtab(PB$PACER_HFZ, 
+         PB$PerFat_HFZ, 
+         show.row.prc = TRUE, 
+         show.legend = TRUE)
+
+sjt.xtab(PB$PACER_HFZ, 
+         PB$MC_level, 
+         show.row.prc = TRUE, 
+         show.legend = TRUE)
+
+low <- PB[PB$MCA_Class == 1, ]
+
+high <- PB[PB$MCA_Class == 3, ]
+
+cor.test(low$MCA_Overall, low$PACER_VO2max)
+
+cor.test(high$MCA_Overall, high$PACER_VO2max)
+
+summary(lm(PB$PerFat ~ PB$PACER_VO2max + PB$MCA_Overall))
+
+summary(lm(PB$PerFat ~ PB$MCA_Overall))
+
+summary(lm(PB$PerFat ~ PB$PACER_VO2max))
+
+summary(lm(PB$PACER_VO2max ~ PB$PerFat + PB$MCA_Overall))
+
+boxplot(PB$MCA_Overall, PB$PACER_VO2max)
 ```
 
