@@ -20,7 +20,7 @@ library(bibtex) # For finding and creating citations
 ```
 
 # Citations
-```{r include=FALSE}
+```{r eval=FALSE, include=FALSE}
 # using bibtex package
 
 write.bib(c('apaTables', "officer", "sjPlot", "flextable", "qwraps2",
@@ -75,6 +75,19 @@ age <- summary_table(descriptives, participants)
 
 age
 
+# Reviewers asked for breakdown by ages (I assume including gender)
+descriptives <- descriptives %>% 
+  mutate(age_round = floor(Age_Test_yrs)) %>% 
+  mutate(age_bins = cut(age_round, 
+                        breaks = c(0, 10, 11, 12, 13, 14, 15, 16, 17, 18),
+                        labels = c("10", "11", "12", "13", "14", "15", "16", "17", 
+                                   "18"),
+                        right = TRUE))
+
+age_bin_tib <- descriptives %>% 
+  group_by(Sex, age_bins) %>% 
+  summarise(N = n())
+
 PB %>%
   group_by(Sex, MC_level, Grip_level) %>%
   summarise(Sex_Count=n(), 
@@ -102,25 +115,16 @@ ethnic_tib <- descriptives %>%
 options(qwraps2_markup = "markdown")
 our_summary1 <-
   list("Height (cm)" =
-       list("min"       = ~ min(StaHt),
-            "median"    = ~ median(StaHt),
-            "max"       = ~ max(StaHt),
-            "mean (sd)" = ~ qwraps2::mean_sd(StaHt)),
+       list("mean (sd)" = ~ qwraps2::mean_sd(StaHt)),
+       
        "Weight (kg)" =
-       list("min"       = ~ min(Weightkg),
-            "median"    = ~ median(Weightkg),
-            "max"       = ~ max(Weightkg),
-            "mean (sd)" = ~ qwraps2::mean_sd(Weightkg)),
+       list("mean (sd)" = ~ qwraps2::mean_sd(Weightkg)),
+       
        "Grip Max Average (kg)" =
-       list("min"       = ~ min(Grip_Max_Mean_kg),
-            "median"    = ~ median(Grip_Max_Mean_kg),
-            "max"       = ~ max(Grip_Max_Mean_kg),
-            "mean (sd)" = ~ qwraps2::mean_sd(Grip_Max_Mean_kg)),
+       list("mean (sd)" = ~ qwraps2::mean_sd(Grip_Max_Mean_kg)),
+       
        "Vo2 Max" =
-       list("min"       = ~ min(PACER_VO2max),
-            "median"    = ~ median(PACER_VO2max),
-            "max"       = ~ max(PACER_VO2max),
-            "mean (sd)" = ~ qwraps2::mean_sd(PACER_VO2max))
+       list("mean (sd)" = ~ qwraps2::mean_sd(PACER_VO2max))
        )
 
 whole <- summary_table(descriptives, our_summary1)
