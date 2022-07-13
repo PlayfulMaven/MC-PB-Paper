@@ -1,0 +1,235 @@
+---
+title: "Potential Relevance of a Motor Skill Proficiency Barrier in Youth"
+author: "Cade Abrams"
+format: 
+  html:
+    code-copy: true
+    code-fold: show
+editor: visual
+toc: true
+self-contained: true
+---
+
+# Loading Libraries
+```{r}
+#| output: false
+
+library(tidyverse)
+library(here)
+library(sjPlot)
+library(qwraps2)
+library(flextable)
+library(officer)
+library(apaTables)
+```
+
+# Creating Data
+
+## Adding in LOC OC and Stability Composites
+
+```{r}
+PB <- read.csv(here("Data", "Clean", "PB.csv"))
+
+extra_data <- read.csv(here("Data", "csv", "De_Meester_Full_Data.csv"))
+
+# Joining percentile data for composites
+df_key <- extra_data %>% 
+  select(PartJD, MCAStab, MCALoc, MCAOC)
+
+PB <- PB %>% 
+  left_join(df_key,
+            by = c("PartID" = "PartJD"))
+
+# Replacing zeros with NA
+PB <- PB %>% 
+  mutate(MCAStab = replace(MCAStab, MCAStab <= 0, NA),
+         MCALoc = replace(MCALoc, MCALoc <= 0, NA),
+         MCAOC = replace(MCAOC, MCAOC <= 0, NA))
+```
+
+### Making Factors
+```{r}
+PB <- PB %>% 
+  mutate(Grip_level = factor(allo_grip_class,
+                             levels = c(1, 2, 3),
+                             labels = c("Low", "Moderate", "High")),
+         Pacer_level = factor(PACER_HFZ,
+                              levels = c(1, 2, 3),
+                              labels = c("Health Risk", "Needs Improvement", "Healthy")),
+         MC_level = factor(MCA_Class,
+                           levels = c(1, 2, 3),
+                           labels = c("Low", "Moderate", "High")))
+
+# Making Sex and Ethnicity factors
+
+PB <- PB %>% 
+  mutate_at(c("Sex", "Ethnicity"), as.factor)
+
+head(PB)
+
+table(PB$Ethnicity)
+```
+
+## Descriptive Statistics
+
+```{r}
+#| output: false
+
+# Using qwraps2
+
+descriptives <- subset(PB, select = c(MC_level, Sex, Ethnicity, Age_Test_yrs, StaHt, Weightkg, 
+                                      BMI, PACER_VO2max, Grip_Max_Mean_kg))
+
+descriptives
+
+participants <- list("Age" = 
+         list("min"       = ~ min(Age_Test_yrs),
+              "mean (sd)" = ~ qwraps2 :: mean_sd(Age_Test_yrs),
+              "max"       = ~ max (Age_Test_yrs)))
+
+age <- summary_table(descriptives, participants)
+
+age
+
+# Reviewers asked for breakdown by ages (I assume including gender)
+descriptives <- descriptives %>% 
+  mutate(age_round = floor(Age_Test_yrs)) %>% 
+  mutate(age_bins = cut(age_round, 
+                        breaks = c(0, 10, 11, 12, 13, 14, 15, 16, 17, 18),
+                        labels = c("10", "11", "12", "13", "14", "15", "16", "17", 
+                                   "18"),
+                        right = TRUE))
+
+age_bin_tib <- descriptives %>% 
+  group_by(Sex, age_bins) %>% 
+  summarise(N = n())
+
+PB %>%
+  group_by(Sex, MC_level, Grip_level) %>%
+  summarise(Sex_Count=n(), 
+            BMI = mean(BMI),
+          .groups = "drop")
+
+
+gender_tib <- descriptives %>%
+  group_by(Sex) %>%
+  summarise(N = n()) %>%
+  mutate(props = round(N/sum(N), 
+                       digits = 3)) %>%
+ ungroup
+
+ethnic_tib <- descriptives %>%
+  group_by(Ethnicity) %>%
+  summarise(N = n()) %>%
+  mutate(props = round(N/sum(N), 
+                       digits = 3)) %>%
+ ungroup
+```
+
+### APA Table for Descriptive Stats (Packages: qwraps2; flextable; officer)
+
+```{r}
+#| eval: false
+
+options(qwraps2_markup = "markdown")
+our_summary1 <-
+  list("Height (cm)" =
+       list("mean (sd)" = ~ qwraps2::mean_sd(StaHt)),
+       
+       "Weight (kg)" =
+       list("mean (sd)" = ~ qwraps2::mean_sd(Weightkg)),
+       
+       "Grip Max Average (kg)" =
+       list("mean (sd)" = ~ qwraps2::mean_sd(Grip_Max_Mean_kg)),
+       
+       "Vo2 Max" =
+       list("mean (sd)" = ~ qwraps2::mean_sd(PACER_VO2max))
+       )
+
+whole <- summary_table(descriptives, our_summary1)
+whole
+
+level.sum <- summary_table(dplyr::group_by(descriptives, MC_level), our_summary1)
+level.sum
+
+level.sum <- as.data.frame(level.sum)
+
+level.sum <- flextable(level.sum %>% rownames_to_column("Delete This Column Header"))
+
+level.sum <- theme_booktabs(level.sum)
+
+level.sum <- align(level.sum, align = "center", part = "body")
+
+level.sum <- set_caption(level.sum, 
+                          caption = "Descriptive Statistics of Scores on Level of Motor 
+                                     Competence")
+
+level.sum <- footnote(level.sum, 
+                      i = 9, 
+                      j = 1, 
+                      value = as_paragraph("Grip Max Average was calculated by averaging 
+                      maximum grip values for the right and left hands."))
+
+level.sum <- autofit(level.sum)
+
+level.sum
+
+#word_export <- read_docx()
+#word_export <- body_add_flextable(word_export, level.sum)
+#print(word_export, 'new table.docx')
+```
+
+## Looking at Chi-Square for MSF (Packages: sjPlot)
+
+```{r}
+PB.new <- subset(PB, select=c(Sex, MC_level, Grip_level, Pacer_level))
+
+sjt.xtab(PB.new$MC_level, 
+         PB.new$Grip_level, 
+         show.row.prc = TRUE, 
+         show.legend = TRUE, 
+         file = "apa_GRIP.doc")
+```
+
+## Looking at Chi-Square for CRF (Packages: sjPlot)
+
+```{r}
+sjt.xtab(PB.new$MC_level, 
+         PB.new$Pacer_level, 
+         show.row.prc = TRUE, 
+         show.legend = TRUE,  
+         file = "apa_PACER.doc")
+```
+
+# APA Correlation Table for Grip, V02, and MCA Overall (Packages: apaTables)
+
+```{r}
+correlations <- subset(PB, select = c(Sex, MCA_Overall, allo_grip_percentile, PACER_VO2max))
+
+apa.cor.table(correlations, table.number = 2)#, filename = "New Correlation Table.doc")
+```
+
+# Measuring Post Hoc Power (Packages: pwr)
+
+```{r}
+# Power for CRF
+
+N <- nrow(PB)
+
+a <- (length(unique(PB$MC_level))-1)*(length(unique(PB$PACER_HFZ))-1)
+  
+pwr::pwr.chisq.test(w = .217, N = N, df = a)
+
+```
+
+```{r}
+# Power for MSF
+
+N <- nrow(PB)
+
+a <- (length(unique(PB$MC_level))-1)*(length(unique(PB$Grip_level))-1)
+  
+pwr::pwr.chisq.test(w = .226, N = N, df = a)
+
+```
+
