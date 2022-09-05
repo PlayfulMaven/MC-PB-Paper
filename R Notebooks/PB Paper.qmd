@@ -8,9 +8,20 @@ format:
 editor: visual
 toc: true
 self-contained: true
+bibliography: PB.bib.bak
 ---
 
+
+---
+nocite: '@*'
+...
+
+# References
+:::{#refs}
+:::
+
 # Loading Libraries
+
 ```{r}
 #| output: false
 
@@ -23,6 +34,7 @@ library(officer)
 library(apaTables)
 ```
 
+
 # Creating Data
 
 ## Adding in LOC OC and Stability Composites
@@ -34,7 +46,7 @@ extra_data <- read.csv(here("Data", "csv", "De_Meester_Full_Data.csv"))
 
 # Joining percentile data for composites
 df_key <- extra_data %>% 
-  select(PartJD, MCAStab, MCALoc, MCAOC)
+  select(PartJD, MCAStab, MCALoc, MCAOC, MCAOverall)
 
 PB <- PB %>% 
   left_join(df_key,
@@ -44,10 +56,12 @@ PB <- PB %>%
 PB <- PB %>% 
   mutate(MCAStab = replace(MCAStab, MCAStab <= 0, NA),
          MCALoc = replace(MCALoc, MCALoc <= 0, NA),
-         MCAOC = replace(MCAOC, MCAOC <= 0, NA))
+         MCAOC = replace(MCAOC, MCAOC <= 0, NA),
+         MCAOverall = replace(MCAOverall, MCAOverall <= 0, NA))
 ```
 
 ### Making Factors
+
 ```{r}
 PB <- PB %>% 
   mutate(Grip_level = factor(allo_grip_class,
@@ -78,7 +92,8 @@ table(PB$Ethnicity)
 # Using qwraps2
 
 descriptives <- subset(PB, select = c(MC_level, Sex, Ethnicity, Age_Test_yrs, StaHt, Weightkg, 
-                                      BMI, PACER_VO2max, Grip_Max_Mean_kg))
+                                      BMI, PACER_VO2max, Grip_Max_Mean_kg, MCAStab, 
+                                      MCALoc, MCAOC, MCAOverall))
 
 descriptives
 
@@ -100,9 +115,15 @@ descriptives <- descriptives %>%
                                    "18"),
                         right = TRUE))
 
-age_bin_tib <- descriptives %>% 
+sex_age_bin_tib <- descriptives %>% 
   group_by(Sex, age_bins) %>% 
+  summarise(N = n()) 
+
+age_bin_tib <- descriptives %>% 
+  group_by(age_bins) %>% 
   summarise(N = n())
+
+total_age_bin_tib <- rbind(sex_age_bin_tib, age_bin_tib)
 
 PB %>%
   group_by(Sex, MC_level, Grip_level) %>%
@@ -139,11 +160,20 @@ our_summary1 <-
        "Weight (kg)" =
        list("mean (sd)" = ~ qwraps2::mean_sd(Weightkg)),
        
+       "Vo2 Max" =
+       list("mean (sd)" = ~ qwraps2::mean_sd(PACER_VO2max)),
+       
        "Grip Max Average (kg)" =
        list("mean (sd)" = ~ qwraps2::mean_sd(Grip_Max_Mean_kg)),
        
-       "Vo2 Max" =
-       list("mean (sd)" = ~ qwraps2::mean_sd(PACER_VO2max))
+       "MCAStab" =
+       list("mean (sd)" = ~ qwraps2::mean_sd(MCAStab)),
+       
+       "MCALoc" =
+       list("mean (sd)" = ~ qwraps2::mean_sd(MCALoc)),
+       
+       "MCAOC" =
+       list("mean (sd)" = ~ qwraps2::mean_sd(MCAOC))
        )
 
 whole <- summary_table(descriptives, our_summary1)
@@ -173,6 +203,19 @@ level.sum <- footnote(level.sum,
 level.sum <- autofit(level.sum)
 
 level.sum
+
+MCA_sum <- descriptives %>%
+  select(-Sex, -Ethnicity, -age_bins, -age_round) %>% 
+  group_by(MC_level) %>%
+  summarise(across(everything(), 
+                   tibble::lst(mean, sd), 
+                   na.rm = TRUE,
+                   .names = "{fn}_{col}"))
+
+MCA_sum <- MCA_sum %>% 
+  mutate_if(is.numeric, round, 2)
+
+MCA_sum <- t(MCA_sum)
 
 #word_export <- read_docx()
 #word_export <- body_add_flextable(word_export, level.sum)
