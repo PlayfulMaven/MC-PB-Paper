@@ -252,27 +252,3 @@ correlations <- subset(PB, select = c(Sex, MCA_Overall, allo_grip_percentile, PA
 apa.cor.table(correlations, table.number = 2)#, filename = "New Correlation Table.doc")
 ```
 
-# Measuring Post Hoc Power (Packages: pwr)
-
-```{r}
-# Power for CRF
-
-N <- nrow(PB)
-
-a <- (length(unique(PB$MC_level))-1)*(length(unique(PB$PACER_HFZ))-1)
-  
-pwr::pwr.chisq.test(w = .217, N = N, df = a)
-
-```
-
-```{r}
-# Power for MSF
-
-N <- nrow(PB)
-
-a <- (length(unique(PB$MC_level))-1)*(length(unique(PB$Grip_level))-1)
-  
-pwr::pwr.chisq.test(w = .226, N = N, df = a)
-
-```
-
