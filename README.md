@@ -7,13 +7,13 @@ This study investigated the potential impact of a motor skill proficiency barrie
 cardiorespiratory (CRF) and musculoskeletal (MSF) fitness in youth. A sample of 241 youth (114
 girls) aged 10 - 18 years, completed the Motor Competence Assessment battery with composite
 scores indexed according to age- and gender-adjusted percentile scores. Motor competence
-(MC) levels were categorized as low (≤ 25^%tile – proficiency barrier), moderate (≥ 26^%tile to < 75^%
-tile), and high (≥ 75^%tile). CRF levels (Health Risk, Needs Improvement, and Healthy) were
-assessed using the Fitnessgram® 20 m PACER test. Low (≤ 20^%tile), moderate (≥ 21^%tile to ≤ 80^%
-tile), and high (≥ 80^%tile) MSF levels were assessed using grip strength normative data. Two 3 × 3
+(MC) levels were categorized as low (≤ 25<sup>%tile<sup> – proficiency barrier), moderate (≥ 26<sup>%til<sup>e to < 75^%
+tile), and high (≥ 75<sup>%tile<sup>). CRF levels (Health Risk, Needs Improvement, and Healthy) were
+assessed using the Fitnessgram® 20 m PACER test. Low (≤ 20<sup>%tile<sup>), moderate (≥ 21<sup>%tile<sup> to ≤ 80<sup>%
+tile<sup>), and high (≥ 80<sup>%tile<sup>) MSF levels were assessed using grip strength normative data. Two 3 × 3
 chi-square tests were conducted to determine the probability of MC level predicting CRF and
 MSF levels. Results demonstrated statistically significant models for performance on both the
-PACER (χ2[4, N = 241] = 22.65, p < .001) and grip strength (χ2[4, N = 241] = 23.95, p < .001). Strong
+PACER (χ<sup>2<sup>[4, N = 241] = 22.65, p < .001) and grip strength (χ<sup>2<sup>[4, N = 241] = 23.95, p < .001). Strong
 evidence of a proficiency barrier impacting CRF was noted, as no low skilled youth met the
 “Healthy” fitness zone standards for PACER performance. Evidence supporting a barrier with
 grip strength was not as strong, as 20.8% of youth exhibiting low MC displayed high grip
