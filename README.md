@@ -1,50 +1,35 @@
 # MC-PB-Paper
  
- Investigating Seefedlt's motor skill proficiency barrier on aspects of health-related fitness in youth ages 10-18.
+ Investigating Seefedlt's motor skill proficiency barrier on aspects of health-related fitness in youth ages 10-18. The full manuscript is saved under the file name "Abrams et al, 2022_Potential_relevance..." within this repository. You can also access the online version [here.](https://doi.org/10.1080/17461391.2022.2153300)
 
-## Guidelines for Pushing/Pulling Commits:
+# Abstract
+This study investigated the potential impact of a motor skill proficiency barrier on measures of
+cardiorespiratory (CRF) and musculoskeletal (MSF) fitness in youth. A sample of 241 youth (114
+girls) aged 10 - 18 years, completed the Motor Competence Assessment battery with composite
+scores indexed according to age- and gender-adjusted percentile scores. Motor competence
+(MC) levels were categorized as low (≤ 25%tile – proficiency barrier), moderate (≥ 26%tile to < 75%
+tile), and high (≥ 75%tile). CRF levels (Health Risk, Needs Improvement, and Healthy) were
+assessed using the Fitnessgram® 20 m PACER test. Low (≤ 20%tile), moderate (≥ 21%tile to ≤ 80%
+tile), and high (≥ 80%tile) MSF levels were assessed using grip strength normative data. Two 3 × 3
+chi-square tests were conducted to determine the probability of MC level predicting CRF and
+MSF levels. Results demonstrated statistically significant models for performance on both the
+PACER (χ2[4, N = 241] = 22.65, p < .001) and grip strength (χ2[4, N = 241] = 23.95, p < .001). Strong
+evidence of a proficiency barrier impacting CRF was noted, as no low skilled youth met the
+“Healthy” fitness zone standards for PACER performance. Evidence supporting a barrier with
+grip strength was not as strong, as 20.8% of youth exhibiting low MC displayed high grip
+strength. However, all individuals with high levels of MC demonstrated at least moderate grip
+strength. Results emphasize the importance of developing MC during childhood as it may
+provide a protective effect against unhealthy CRF and MSF across youth.
 
-1. Commits should be pushed as frequently as possible. 
-
-2. Before beginning work, make sure you have pulled the most recent commits to your local machine.
-
-3. While working, push commits after every milestone (e.g., getting deemographic info, creating composite scores for all variables, running groups of correlations/regressions, creating a table or multiple plots)
-
-	—> Use your best judgement when making commits. You do not have to push commits after every line of code, but you should be pushing commits throughout
-	   your working session. 
-	
-	—> This allows for more visibility between team members, and keeps us from working on the same chunks of code at the same time.
-	
-4. Push all commits at the end of your work session!
-
-## Data Cleaning Workflow and File Organization:
-
-1. After double-entering the data, original Excel files are saved to the “Excel Files” folder.
-
-2. Open the original Excel file and immediately “Save As” a .csv file in the “csv Files” folder.
-
-   —> Any modifications that need to be made should be made to the .csv file. 
-      
-      —> Original files should not be manipulated. They serve as a reference in case data is overwritten or lost in the other folders.
-
-3. Create a folder for the analysis	you plan to use with the .csv file.
-
-  	—>  Example: Create a folder labelled “Spring ’21” to analyze the motor and ACFT data for Spring ’21. 
-
-4. Within the new folder (i.e., Spring ’21), create another folder labelled “Data Cleaning”. 
-
- 	 —> Example:  Spring ’21
-			                  	—> Data Cleaning
-
-5. Create a notebook that includes the word “Cleaning” and is easily identifiable. Save this .Rmd file under the “Data Cleaning” subfolder. Then proceed with cleaning the data. 
-
-  	—> Example:  Spring ’21
-			               	   —> Data Cleaning
-					                     	   —> Cleaning_Spring-21.Rmd
-
-6. After you have finished cleaning the data, write to a .csv file and save the file in the “Clean Data” subfolder
-    within the “Data Files” folder.
-
-	  —> Example: Data Files
-				               —> Clean Data
-					                       —>  Spring-21.csv
+# Highlights
+. These data support the notion of Seefeldt’s (1980) proficiency barrier as it relates to CRF, as no
+youth demonstrating low MC met the healthy fitness zone criteria for PACER performance. The
+development of MC may both directly and indirectly provide a protective effect against
+unhealthy CRF levels across childhood and adolescence.
+. Evidence supporting a proficiency barrier with MSF as measured by grip strength was not as
+strong; however, all individuals with high levels of MC demonstrated at least moderate grip
+strength. Thus, the development of MC may be a protective factor to mitigate low levels of
+MSF via enhanced neuromuscular function.
+. Promoting the development of MC in a variety of developmentally appropriate activities and
+settings (e.g. MC skills practice, structured and unstructured play, and performance contexts)
+is important to promote positive trajectories of CRF and MSF across childhood and adolescence.
