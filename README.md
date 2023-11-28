@@ -1,6 +1,6 @@
 # MC-PB-Paper
  
- Investigating Seefedlt's motor skill proficiency barrier on aspects of health-related fitness in youth ages 10-18. The full manuscript is saved under the file name "Abrams et al, 2022_Potential_relevance..." within this repository. You can also access the online version [here.](https://doi.org/10.1080/17461391.2022.2153300)
+ Investigating Seefedlt's motor skill proficiency barrier on aspects of health-related fitness in youth ages 10-18. The full manuscript is saved under the file name "Abrams et al., 2022_Potential_relevance..." within this repository. You can also access the online version [here.](https://doi.org/10.1080/17461391.2022.2153300)
 
 # Abstract
 This study investigated the potential impact of a motor skill proficiency barrier on measures of
