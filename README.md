@@ -7,7 +7,7 @@ This study investigated the potential impact of a motor skill proficiency barrie
 cardiorespiratory (CRF) and musculoskeletal (MSF) fitness in youth. A sample of 241 youth (114
 girls) aged 10 - 18 years, completed the Motor Competence Assessment battery with composite
 scores indexed according to age- and gender-adjusted percentile scores. Motor competence
-(MC) levels were categorized as low (≤ 25<sup>%tile</sup> – proficiency barrier), moderate (≥ 26<sup>%til</sup>e to < 75<sup>%
+(MC) levels were categorized as low (≤ 25<sup>%tile</sup> – proficiency barrier), moderate (≥ 26<sup>%tile</sup> to < 75<sup>%
 tile</sup>), and high (≥ 75<sup>%tile</sup>). CRF levels (Health Risk, Needs Improvement, and Healthy) were
 assessed using the Fitnessgram® 20 m PACER test. Low (≤ 20<sup>%tile</sup>), moderate (≥ 21<sup>%tile</sup> to ≤ 80<sup>%
 tile</sup>), and high (≥ 80<sup>%tile</sup>) MSF levels were assessed using grip strength normative data. Two 3 × 3
