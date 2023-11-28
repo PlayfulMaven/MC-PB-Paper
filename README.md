@@ -22,14 +22,14 @@ strength. Results emphasize the importance of developing MC during childhood as 
 provide a protective effect against unhealthy CRF and MSF across youth.
 
 # Highlights
-. These data support the notion of Seefeldt’s (1980) proficiency barrier as it relates to CRF, as no
+- These data support the notion of Seefeldt’s (1980) proficiency barrier as it relates to CRF, as no
 youth demonstrating low MC met the healthy fitness zone criteria for PACER performance. The
 development of MC may both directly and indirectly provide a protective effect against
-unhealthy CRF levels across childhood and adolescence.
-. Evidence supporting a proficiency barrier with MSF as measured by grip strength was not as
+unhealthy CRF levels across childhood and adolescence.  
+- Evidence supporting a proficiency barrier with MSF as measured by grip strength was not as
 strong; however, all individuals with high levels of MC demonstrated at least moderate grip
 strength. Thus, the development of MC may be a protective factor to mitigate low levels of
-MSF via enhanced neuromuscular function.
-. Promoting the development of MC in a variety of developmentally appropriate activities and
+MSF via enhanced neuromuscular function.  
+- Promoting the development of MC in a variety of developmentally appropriate activities and
 settings (e.g. MC skills practice, structured and unstructured play, and performance contexts)
 is important to promote positive trajectories of CRF and MSF across childhood and adolescence.
